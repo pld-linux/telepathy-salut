@@ -1,0 +1,53 @@
+Summary:	Link-local XMPP connection manager for the Telepathy
+Name:		telepathy-salut
+Version:	0.1.2
+Release:	1
+License:	LGPL
+Group:		Libraries
+Source0:	http://telepathy.freedesktop.org/releases/telepathy-salut/%{name}-%{version}.tar.gz
+# Source0-md5:	ff5470c472854be8afd2b69892239c06
+URL:		http://telepathy.freedesktop.org/wiki/
+BuildRequires:	autoconf >= 2.59
+BuildRequires:	automake >= 1:1.8
+BuildRequires:	avahi-glib-devel
+BuildRequires:	dbus-glib-devel >= 0.61
+BuildRequires:	glib2-devel >= 2.4
+BuildRequires:	libtool
+BuildRequires:	libxml2-devel >= 1:2.6.28
+BuildRequires:	libxslt-progs
+BuildRequires:	openssl-devel
+BuildRequires:	pkgconfig
+BuildRequires:	python
+BuildRequires:	telepathy-glib-devel >= 0.5.10
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%description
+This package provides Link-local XMPP functionality for Telepathy.
+
+%prep
+%setup -q
+
+%build
+%{__libtoolize}
+%{__aclocal} -I m4
+%{__autoconf}
+%{__autoheader}
+%{__automake}
+%configure
+%{__make}
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+%{__make} install \
+	DESTDIR=$RPM_BUILD_ROOT
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(644,root,root,755)
+%doc AUTHORS ChangeLog
+%attr(755,root,root) %{_bindir}/telepathy-salut
+%{_datadir}/dbus-1/services/org.freedesktop.Telepathy.ConnectionManager.salut.service
+%{_datadir}/telepathy/managers/salut.manager
