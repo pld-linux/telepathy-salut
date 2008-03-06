@@ -1,16 +1,17 @@
 Summary:	Link-local XMPP connection manager for the Telepathy
 Summary(pl.UTF-8):	Zarządca połączeń XMPP link-local dla Telepathy
 Name:		telepathy-salut
-Version:	0.2.0
+Version:	0.3.1
 Release:	1
 License:	LGPL
 Group:		Libraries
 Source0:	http://telepathy.freedesktop.org/releases/telepathy-salut/%{name}-%{version}.tar.gz
-# Source0-md5:	0e3067b72e4aa39b8cedbcd5ac3a94af
+# Source0-md5:	c727ddf089a9ddcc99a8d499f61bf66f
 URL:		http://telepathy.freedesktop.org/wiki/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.8
 BuildRequires:	avahi-glib-devel
+BuildRequires:	avahi-gobject-devel
 BuildRequires:	dbus-glib-devel >= 0.61
 BuildRequires:	glib2-devel >= 2.4
 BuildRequires:	libtool
