@@ -14,12 +14,15 @@ BuildRequires:	avahi-glib-devel
 BuildRequires:	avahi-gobject-devel
 BuildRequires:	dbus-glib-devel >= 0.61
 BuildRequires:	glib2-devel >= 2.4
+BuildRequires:	gtk-doc-automake
+BuildRequires:	libsoup-devel
 BuildRequires:	libtool
 BuildRequires:	libxml2-devel >= 1:2.6.28
 BuildRequires:	libxslt-progs
 BuildRequires:	openssl-devel
 BuildRequires:	pkgconfig
 BuildRequires:	python
+BuildRequires:	python-modules
 BuildRequires:	telepathy-glib-devel >= 0.7.23
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
