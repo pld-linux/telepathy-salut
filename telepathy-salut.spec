@@ -1,29 +1,33 @@
 Summary:	Link-local XMPP connection manager for the Telepathy
 Summary(pl.UTF-8):	Zarządca połączeń XMPP link-local dla Telepathy
 Name:		telepathy-salut
-Version:	0.4.0
+Version:	0.6.0
 Release:	1
 License:	LGPL
 Group:		Libraries
 Source0:	http://telepathy.freedesktop.org/releases/telepathy-salut/%{name}-%{version}.tar.gz
-# Source0-md5:	95f0cf9681912104474b0f4c4d00807f
+# Source0-md5:	a0df48e6c2e137a928f8f39655b8dc26
 URL:		http://telepathy.freedesktop.org/wiki/
 BuildRequires:	autoconf >= 2.59
-BuildRequires:	automake >= 1:1.8
+BuildRequires:	automake >= 1:1.9
 BuildRequires:	avahi-glib-devel
 BuildRequires:	avahi-gobject-devel
+BuildRequires:	cyrus-sasl-devel
+BuildRequires:	dbus-devel >= 1.1.0
 BuildRequires:	dbus-glib-devel >= 0.61
-BuildRequires:	glib2-devel >= 2.4
+BuildRequires:	glib2-devel >= 2.26
 BuildRequires:	gtk-doc-automake
 BuildRequires:	libsoup-devel
 BuildRequires:	libtool
+BuildRequires:	libuuid-devel
 BuildRequires:	libxml2-devel >= 1:2.6.28
 BuildRequires:	libxslt-progs
-BuildRequires:	openssl-devel
+BuildRequires:	openssl-devel >= 0.9.8g
 BuildRequires:	pkgconfig
-BuildRequires:	python
+BuildRequires:	python >= 2.5
 BuildRequires:	python-modules
-BuildRequires:	telepathy-glib-devel >= 0.7.23
+BuildRequires:	sqlite3-devel
+BuildRequires:	telepathy-glib-devel >= 0.13.12
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -41,7 +45,8 @@ Ten pakiet udostępnia funkcjonalność XMPP link-local dla Telepathy.
 %{__autoconf}
 %{__autoheader}
 %{__automake}
-%configure
+%configure \
+	--with-tls=openssl
 %{__make}
 
 %install
