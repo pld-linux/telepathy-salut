@@ -60,7 +60,8 @@ Ten pakiet udostępnia funkcjonalność XMPP link-local dla Telepathy.
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%{__make} install \
+# -j1 because of some race when installing libsalut-plugins.so and relinking its dependencies
+%{__make} -j1 install \
 	DESTDIR=$RPM_BUILD_ROOT
 
 # private shared libraries, .la file/.so symlink not needed
