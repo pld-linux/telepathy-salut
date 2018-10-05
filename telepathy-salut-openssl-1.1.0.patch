@@ -1,0 +1,161 @@
+diff -burN telepathy-salut-0.8.1.orig/lib/ext/wocky/wocky/wocky-openssl.c telepathy-salut-0.8.1/lib/ext/wocky/wocky/wocky-openssl.c
+--- telepathy-salut-0.8.1.orig/lib/ext/wocky/wocky/wocky-openssl.c	2016-07-02 10:35:49.000000000 +0200
++++ telepathy-salut-0.8.1/lib/ext/wocky/wocky/wocky-openssl.c	2018-10-05 09:41:46.359802114 +0200
+@@ -885,7 +885,7 @@
+   int i;
+   gboolean rval = FALSE;
+   X509_NAME *subject = X509_get_subject_name (cert);
+-  X509_CINF *ci = cert->cert_info;
++  const STACK_OF(X509_EXTENSION) *extensions = X509_get0_extensions(cert);
+   static const long nid[] = { NID_commonName, NID_subject_alt_name, NID_undef };
+ 
+   /* first, see if the x509 name contains the info we want: */
+@@ -906,16 +906,16 @@
+    * and extract the subject_alt_name from the x509 v3 extensions: if that   *
+    * extension is present, and a string, use that. If it is present, and     *
+    * a multi-value stack, trawl it for the "DNS" entry and use that          */
+-  if (!rval && (ci->extensions != NULL))
+-    for (i = 0; i < sk_X509_EXTENSION_num(ci->extensions) && !rval; i++)
++  if (!rval && (extensions != NULL))
++    for (i = 0; i < sk_X509_EXTENSION_num(extensions) && !rval; i++)
+       {
+-        X509_EXTENSION *ext = sk_X509_EXTENSION_value (ci->extensions, i);
++        X509_EXTENSION *ext = sk_X509_EXTENSION_value (extensions, i);
+         ASN1_OBJECT *obj = X509_EXTENSION_get_object (ext);
+         X509V3_EXT_METHOD *convert = NULL;
+         long ni = OBJ_obj2nid (obj);
+         const guchar *p;
+         char *value = NULL;
+-        int len = ext->value->length;
++        int len = ASN1_STRING_length(X509_EXTENSION_get_data(ext));
+         void *ext_str = NULL;
+ 
+         if (ni != NID_subject_alt_name)
+@@ -927,7 +927,7 @@
+         if ((convert = (X509V3_EXT_METHOD *) X509V3_EXT_get (ext)) == NULL)
+           continue;
+ 
+-        p = ext->value->data;
++        p = ASN1_STRING_data(X509_EXTENSION_get_data(ext));
+         ext_str = ((convert->it != NULL) ?
+                    ASN1_item_d2i (NULL, &p, len, ASN1_ITEM_ptr(convert->it)) :
+                    convert->d2i (NULL, &p, len) );
+@@ -1675,13 +1675,8 @@
+ 
+   if G_UNLIKELY (g_once_init_enter (&initialised))
+     {
+-      gint malloc_init_succeeded;
+-
+       DEBUG ("initialising SSL library and error strings");
+ 
+-      malloc_init_succeeded = CRYPTO_malloc_init ();
+-      g_warn_if_fail (malloc_init_succeeded);
+-
+       SSL_library_init ();
+       SSL_load_error_strings ();
+       OpenSSL_add_all_algorithms();
+@@ -1774,16 +1775,16 @@
+ 
+   if (session->server)
+     {
+-      DEBUG ("I'm a server; using TLSv1_server_method");
++      DEBUG ("I'm a server; using TLS_server_method");
+       /* OpenSSL >= 1.0 returns a const here, but we need to be also   *
+        * compatible with older versions that return a non-const value, *
+        * hence the cast                                                */
+-      session->method = (SSL_METHOD *) TLSv1_server_method ();
++      session->method = (SSL_METHOD *) TLS_server_method ();
+     }
+   else
+     {
+-      DEBUG ("I'm a client; using TLSv1_client_method");
+-      session->method = (SSL_METHOD *) TLSv1_client_method ();
++      DEBUG ("I'm a client; using TLS_client_method");
++      session->method = (SSL_METHOD *) TLS_client_method ();
+     }
+ 
+   session->ctx = SSL_CTX_new (session->method);
+diff -burN telepathy-salut-0.8.1.orig/lib/ext/wocky/wocky/wocky-openssl-dh1024.c telepathy-salut-0.8.1/lib/ext/wocky/wocky/wocky-openssl-dh1024.c
+--- telepathy-salut-0.8.1.orig/lib/ext/wocky/wocky/wocky-openssl-dh1024.c	2016-07-02 10:35:49.000000000 +0200
++++ telepathy-salut-0.8.1/lib/ext/wocky/wocky/wocky-openssl-dh1024.c	2018-10-05 10:20:45.088153474 +0200
+@@ -25,11 +25,13 @@
+ 		0x02,
+ 		};
+ 	DH *dh;
++	BIGNUM *dh_p, *dh_g;
+ 
+ 	if ((dh=DH_new()) == NULL) return(NULL);
+-	dh->p=BN_bin2bn(dh1024_p,sizeof(dh1024_p),NULL);
+-	dh->g=BN_bin2bn(dh1024_g,sizeof(dh1024_g),NULL);
+-	if ((dh->p == NULL) || (dh->g == NULL))
+-		{ DH_free(dh); return(NULL); }
++	dh_p=BN_bin2bn(dh1024_p,sizeof(dh1024_p),NULL);
++	dh_g=BN_bin2bn(dh1024_g,sizeof(dh1024_g),NULL);
++	if ( !DH_set0_pqg(dh, dh_p, NULL, dh_g) ) {
++		return NULL;
++	}
+ 	return(dh);
+ 	}
+diff -burN telepathy-salut-0.8.1.orig/lib/ext/wocky/wocky/wocky-openssl-dh2048.c telepathy-salut-0.8.1/lib/ext/wocky/wocky/wocky-openssl-dh2048.c
+--- telepathy-salut-0.8.1.orig/lib/ext/wocky/wocky/wocky-openssl-dh2048.c	2016-07-02 10:35:49.000000000 +0200
++++ telepathy-salut-0.8.1/lib/ext/wocky/wocky/wocky-openssl-dh2048.c	2018-10-05 10:20:45.211493193 +0200
+@@ -36,11 +36,13 @@
+ 		0x02,
+ 		};
+ 	DH *dh;
++	BIGNUM *dh_p, *dh_g;
+ 
+ 	if ((dh=DH_new()) == NULL) return(NULL);
+-	dh->p=BN_bin2bn(dh2048_p,sizeof(dh2048_p),NULL);
+-	dh->g=BN_bin2bn(dh2048_g,sizeof(dh2048_g),NULL);
+-	if ((dh->p == NULL) || (dh->g == NULL))
+-		{ DH_free(dh); return(NULL); }
++	dh_p=BN_bin2bn(dh2048_p,sizeof(dh2048_p),NULL);
++	dh_g=BN_bin2bn(dh2048_g,sizeof(dh2048_g),NULL);
++	if ( !DH_set0_pqg(dh, dh_p, NULL, dh_g) ) {
++		return NULL;
++	}
+ 	return(dh);
+ 	}
+diff -burN telepathy-salut-0.8.1.orig/lib/ext/wocky/wocky/wocky-openssl-dh4096.c telepathy-salut-0.8.1/lib/ext/wocky/wocky/wocky-openssl-dh4096.c
+--- telepathy-salut-0.8.1.orig/lib/ext/wocky/wocky/wocky-openssl-dh4096.c	2016-07-02 10:35:49.000000000 +0200
++++ telepathy-salut-0.8.1/lib/ext/wocky/wocky/wocky-openssl-dh4096.c	2018-10-05 10:22:08.402462454 +0200
+@@ -57,11 +57,13 @@
+ 		0x02,
+ 		};
+ 	DH *dh;
++	BIGNUM *dh_p, *dh_g;
+ 
+ 	if ((dh=DH_new()) == NULL) return(NULL);
+-	dh->p=BN_bin2bn(dh4096_p,sizeof(dh4096_p),NULL);
+-	dh->g=BN_bin2bn(dh4096_g,sizeof(dh4096_g),NULL);
+-	if ((dh->p == NULL) || (dh->g == NULL))
+-		{ DH_free(dh); return(NULL); }
++	dh_p=BN_bin2bn(dh4096_p,sizeof(dh4096_p),NULL);
++	dh_g=BN_bin2bn(dh4096_g,sizeof(dh4096_g),NULL);
++	if ( !DH_set0_pqg(dh, dh_p, NULL, dh_g) ) {
++		return NULL;
++	}
+ 	return(dh);
+ 	}
+diff -burN telepathy-salut-0.8.1.orig/lib/ext/wocky/wocky/wocky-openssl-dh512.c telepathy-salut-0.8.1/lib/ext/wocky/wocky/wocky-openssl-dh512.c
+--- telepathy-salut-0.8.1.orig/lib/ext/wocky/wocky/wocky-openssl-dh512.c	2016-07-02 10:35:49.000000000 +0200
++++ telepathy-salut-0.8.1/lib/ext/wocky/wocky/wocky-openssl-dh512.c	2018-10-05 10:18:10.136795979 +0200
+@@ -20,11 +20,13 @@
+ 		0x02,
+ 		};
+ 	DH *dh;
++	BIGNUM *dh_p, *dh_g;
+ 
+ 	if ((dh=DH_new()) == NULL) return(NULL);
+-	dh->p=BN_bin2bn(dh512_p,sizeof(dh512_p),NULL);
+-	dh->g=BN_bin2bn(dh512_g,sizeof(dh512_g),NULL);
+-	if ((dh->p == NULL) || (dh->g == NULL))
+-		{ DH_free(dh); return(NULL); }
++	dh_p=BN_bin2bn(dh512_p,sizeof(dh512_p),NULL);
++	dh_g=BN_bin2bn(dh512_g,sizeof(dh512_g),NULL);
++	if ( !DH_set0_pqg(dh, dh_p, NULL, dh_g) ) {
++	return NULL;
++	}
+ 	return(dh);
+ 	}
