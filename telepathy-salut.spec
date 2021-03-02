@@ -5,10 +5,10 @@ Version:	0.8.1
 Release:	4
 License:	LGPL v2.1+
 Group:		Libraries
-Source0:	http://telepathy.freedesktop.org/releases/telepathy-salut/%{name}-%{version}.tar.gz
+Source0:	https://telepathy.freedesktop.org/releases/telepathy-salut/%{name}-%{version}.tar.gz
 # Source0-md5:	7516e6f6fa56a61054413a03642b938d
 Patch0:		%{name}-openssl-1.1.0.patch
-URL:		http://telepathy.freedesktop.org/wiki/
+URL:		https://telepathy.freedesktop.org/components/telepathy-salut/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake >= 1:1.9
 BuildRequires:	avahi-glib-devel
@@ -78,6 +78,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog NEWS README docs/clique.html
 %attr(755,root,root) %{_libexecdir}/telepathy-salut
+# dir shared with telepathy-gabble
+%dir %{_libdir}/telepathy
 %dir %{_libdir}/telepathy/salut-0
 %dir %{_libdir}/telepathy/salut-0/lib
 %attr(755,root,root) %{_libdir}/telepathy/salut-0/lib/libsalut-plugins-%{version}.so
