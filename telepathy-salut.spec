@@ -2,7 +2,7 @@ Summary:	Link-local XMPP connection manager for the Telepathy
 Summary(pl.UTF-8):	Zarządca połączeń XMPP link-local dla Telepathy
 Name:		telepathy-salut
 Version:	0.8.1
-Release:	4
+Release:	5
 License:	LGPL v2.1+
 Group:		Libraries
 Source0:	https://telepathy.freedesktop.org/releases/telepathy-salut/%{name}-%{version}.tar.gz
