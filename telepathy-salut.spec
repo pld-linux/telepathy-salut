@@ -45,7 +45,7 @@ Ten pakiet udostępnia funkcjonalność XMPP link-local dla Telepathy.
 
 %prep
 %setup -q
-%patch0 -p1
+%patch -P0 -p1
 
 %build
 %{__libtoolize}
